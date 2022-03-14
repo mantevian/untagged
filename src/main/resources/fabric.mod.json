@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "untagged",
+  "version": "${version}",
+  "name": "untagged",
+  "description": "Simply adds '/nametag hide' and '/nametag show' as shortcuts for creating teams with nametag visibility rules",
+  "authors": [
+    "mantevian"
+  ],
+  "contact": {
+    "homepage": "https://mantevian.github.io",
+    "sources": "https://github.com/mantevian/untagged"
+  },
+  "license": "MIT",
+  "icon": "assets/untagged/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "net.fabricmc.mante.untagged.Untagged"
+    ]
+  },
+  "mixins": [
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.0",
+    "fabric": "*",
+    "minecraft": ">=1.18"
+  }
+}
