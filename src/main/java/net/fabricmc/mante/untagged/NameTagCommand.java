@@ -1,20 +1,20 @@
 package net.fabricmc.mante.untagged;
 
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.scoreboard.ScoreHolder;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.Objects;
 
 public class NameTagCommand {
     public static void load() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, environment) -> {
             LiteralCommandNode<ServerCommandSource> name_tag_node = CommandManager
                     .literal("nametag")
                     .build();
@@ -35,33 +35,32 @@ public class NameTagCommand {
         });
     }
 
+
     private static int hide(CommandContext<ServerCommandSource> context) {
-        try {
-            ServerPlayerEntity player = context.getSource().getPlayer();
-            Team team = Objects.requireNonNull(player.getServer()).getScoreboard().getTeam("mantevian:untagged.hidden");
-            Objects.requireNonNull(player.getServer()).getScoreboard().addPlayerToTeam(player.getEntityName(), team);
-            context.getSource().sendFeedback(new LiteralText("Your nametag has been hidden from other players"), false);
-        }
-        catch (CommandSyntaxException e) {
-            context.getSource().sendFeedback(new LiteralText("Something went wrong when hiding your nametag"), false);
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) {
+            context.getSource().sendFeedback(() -> Text.of("Player not found"), false);
             return 0;
         }
-
-        return 0;
+        Team team = Objects.requireNonNull(player.getServer()).getScoreboard().getTeam("mantevian:untagged.hidden");
+        String name = ScoreHolder.fromProfile(player.getGameProfile()).getNameForScoreboard();
+        Objects.requireNonNull(player.getServer()).getScoreboard().addScoreHolderToTeam(name, team);
+        context.getSource().sendFeedback(() -> Text.of("Name tag of " + name + " is hidden from other players"), false);
+        return 1;
     }
 
+
     private static int show(CommandContext<ServerCommandSource> context) {
-        try {
-            ServerPlayerEntity player = context.getSource().getPlayer();
-            Team team = Objects.requireNonNull(player.getServer()).getScoreboard().getTeam("mantevian:untagged.hidden");
-            Objects.requireNonNull(player.getServer()).getScoreboard().removePlayerFromTeam(player.getEntityName(), team);
-            context.getSource().sendFeedback(new LiteralText("Your nametag is now shown to other players"), false);
-        }
-        catch (CommandSyntaxException e) {
-            context.getSource().sendFeedback(new LiteralText("Something went wrong when showing your nametag"), false);
+        ServerPlayerEntity player = context.getSource().getPlayer();
+        if (player == null) {
+            context.getSource().sendFeedback(() -> Text.of("Player not found"), false);
             return 0;
         }
+        Team team = Objects.requireNonNull(player.getServer()).getScoreboard().getTeam("mantevian:untagged.hidden");
+        String name = ScoreHolder.fromProfile(player.getGameProfile()).getNameForScoreboard();
+        Objects.requireNonNull(player.getServer()).getScoreboard().removeScoreHolderFromTeam(name, team);
+        context.getSource().sendFeedback(() -> Text.of("Name tag of " + name + " is shown to other players"), false);
 
-        return 0;
+        return 1;
     }
 }
